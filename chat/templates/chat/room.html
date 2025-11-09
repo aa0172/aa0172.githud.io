@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- Заголовок чата -->
+    <div class="card" style="margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: between; align-items: center;">
+            <div>
+                <h2 style="margin: 0; color: #8b5cf6;">{{ room.get_display_name }}</h2>
+                <p style="margin: 0.25rem 0 0 0; color: #ccc;">{{ room.description }}</p>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <span id="online-count" style="background: #10b981; color: white; padding: 0.5rem 1rem; border-radius: 20px;">
+                    🟢 <span id="user-count">{{ online_users.count }}</span> онлайн
+                </span>
+                <a href="{% url 'chat_rooms' %}" class="btn" style="background: linear-gradient(135deg, #6b7280, #4b5563);">
+                    ← Назад к чатам
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 1rem;">
+        <!-- Основной чат -->
+        <div style="display: flex; flex-direction: column; height: 70vh;">
+            <!-- Сообщения -->
+            <div class="chat-messages" id="chat-messages">
+                {% for message in messages %}
+                <div class="message {% if message.user == user %}own-message{% endif %}" data-message-id="{{ message.id }}">
+                    <div class="message-header">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            {% if message.user.avatar %}
+                                <img src="{{ message.user.avatar.url }}" alt="Аватар" style="width: 24px; height: 24px; border-radius: 50%;">
+                            {% else %}
+                                <div style="width: 24px; height: 24px; border-radius: 50%; background: #8b5cf6; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: bold;">
+                                    {{ message.user.username|first|upper }}
+                                </div>
+                            {% endif %}
+                            <strong>{{ message.user.username }}</strong>
+                            {% if message.user == user %}
+                                <span style="background: #8b5cf6; color: white; padding: 0.1rem 0.4rem; border-radius: 8px; font-size: 0.7rem;">Вы</span>
+                            {% endif %}
+                        </div>
+                        <span>{{ message.timestamp|date:"H:i" }}</span>
+                    </div>
+                    <div style="margin-top: 0.5rem;">{{ message.content }}</div>
+                </div>
+                {% empty %}
+                <div style="text-align: center; padding: 2rem; color: #666;">
+                    <h3>💬 Начните общение!</h3>
+                    <p>Это начало чата {{ room.get_display_name }}</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Форма ввода -->
+            <div class="chat-input">
+                <input type="text" id="chat-message-input" placeholder="Введите ваше сообщение..." maxlength="1000">
+                <button type="button" id="chat-message-submit" class="btn">Отправить</button>
+            </div>
+        </div>
+
+        <!-- Боковая панель -->
+        <div class="card" style="height: fit-content;">
+            <h3 style="color: #8b5cf6; margin-bottom: 1rem;">👥 Участники онлайн</h3>
+            <div id="online-users-list">
+                {% for user_online in online_users %}
+                <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-bottom: 1px solid #333;">
+                    {% if user_online.avatar %}
+                        <img src="{{ user_online.avatar.url }}" alt="Аватар" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #10b981;">
+                    {% else %}
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; border: 2px solid #10b981;">
+                            {{ user_online.username|first|upper }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <strong style="display: block;">
+                            {% if user_online.first_name %}
+                                {{ user_online.first_name }} {{ user_online.last_name }}
+                            {% else %}
+                                {{ user_online.username }}
+                            {% endif %}
+                        </strong>
+                        <span style="font-size: 0.8rem; color: #10b981;">🟢 онлайн</span>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="text-align: center; color: #666; padding: 1rem;">
+                    Нет пользователей онлайн
+                </p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Стили для сообщений -->
+<style>
+    .own-message {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
+        border-color: #8b5cf6 !important;
+    }
+
+    .own-message .message-header {
+        color: white !important;
+    }
+
+    .system-message {
+        background: #2d2d2d !important;
+        border: 1px solid #f59e0b !important;
+        text-align: center;
+        font-style: italic;
+    }
+</style>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const roomName = "{{ room.name }}";
+    const userName = "{{ user.username }}";
+    const userId = "{{ user.id }}";
+
+    // Подключение к WebSocket
+    const chatSocket = new WebSocket(
+        'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+    );
+
+    // Элементы DOM
+    const chatMessages = document.querySelector('#chat-messages');
+    const messageInput = document.querySelector('#chat-message-input');
+    const messageSubmit = document.querySelector('#chat-message-submit');
+    const onlineUsersList = document.querySelector('#online-users-list');
+    const userCount = document.querySelector('#user-count');
+
+    // Функция для прокрутки вниз
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Функция добавления сообщения
+    function addMessage(data, isSystem = false) {
+        const messageElement = document.createElement('div');
+
+        if (isSystem) {
+            messageElement.classList.add('message', 'system-message');
+            messageElement.innerHTML = `<div style="color: #f59e0b;">${data.message}</div>`;
+        } else {
+            const isOwn = data.user_id == userId;
+            messageElement.classList.add('message');
+            if (isOwn) messageElement.classList.add('own-message');
+
+            messageElement.setAttribute('data-message-id', data.message_id);
+            messageElement.innerHTML = `
+                <div class="message-header">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <strong>${data.username}</strong>
+                        ${isOwn ? '<span style="background: rgba(255,255,255,0.3); color: white; padding: 0.1rem 0.4rem; border-radius: 8px; font-size: 0.7rem;">Вы</span>' : ''}
+                    </div>
+                    <span>${data.timestamp}</span>
+                </div>
+                <div style="margin-top: 0.5rem;">${data.message}</div>
+            `;
+        }
+
+        chatMessages.appendChild(messageElement);
+        scrollToBottom();
+    }
+
+    // Обработчик входящих сообщений
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+
+        switch(data.type) {
+            case 'chat_message':
+                addMessage(data);
+                break;
+
+            case 'user_joined':
+            case 'user_left':
+                addMessage(data, true);
+                userCount.textContent = data.user_count;
+                break;
+        }
+    };
+
+    // Обработчик закрытия соединения
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+        addMessage({
+            message: '❌ Соединение с чатом потеряно. Пожалуйста, обновите страницу.',
+            type: 'system'
+        }, true);
+    };
+
+    // Обработчик ошибок
+    chatSocket.onerror = function(e) {
+        console.error('WebSocket error:', e);
+    };
+
+    // Отправка сообщения
+    function sendMessage() {
+        const message = messageInput.value.trim();
+
+        if (message && chatSocket.readyState === WebSocket.OPEN) {
+            chatSocket.send(JSON.stringify({
+                'type': 'chat_message',
+                'message': message,
+                'username': userName,
+                'user_id': userId
+            }));
+            messageInput.value = '';
+        }
+    }
+
+    // Обработчики событий
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    messageSubmit.addEventListener('click', sendMessage);
+
+    // Автофокус на поле ввода
+    messageInput.focus();
+
+    // Прокрутка вниз при загрузке
+    scrollToBottom();
+</script>
+{% endblock %}

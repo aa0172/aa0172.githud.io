@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>Профиль пользователя</h2>
+
+    <div class="user-card">
+        {% if user.avatar %}
+            <img src="{{ user.avatar.url }}" alt="Аватар" class="avatar">
+        {% else %}
+            <div class="avatar-placeholder">
+                {{ user.username|first|upper }}
+            </div>
+        {% endif %}
+        <div>
+            <h3>{{ user.get_full_name }}</h3>
+            <p>@{{ user.username }}</p>
+            <p>{{ user.email }}</p>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="{{ form.first_name.id_for_label }}">Имя:</label>
+            {{ form.first_name }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.last_name.id_for_label }}">Фамилия:</label>
+            {{ form.last_name }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.avatar.id_for_label }}">Аватар:</label>
+            {{ form.avatar }}
+            {% if user.avatar %}
+                <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+                    Текущий аватар: {{ user.avatar.name }}
+                </p>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.district.id_for_label }}">Район:</label>
+            {{ form.district }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.interest.id_for_label }}">Интересы:</label>
+            {{ form.interest }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.age_group.id_for_label }}">Возрастная группа:</label>
+            {{ form.age_group }}
+        </div>
+
+        <button type="submit" class="btn">Обновить профиль</button>
+    </form>
+</div>
+{% endblock %}

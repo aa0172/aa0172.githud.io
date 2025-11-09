@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <h1>🔍 Поиск напарников</h1>
+
+    <form method="get" class="filter-form">
+        <div class="form-group">
+            <label for="search">Поиск по имени:</label>
+            <input type="text" name="search" id="search" class="form-control"
+                   placeholder="Введите имя или username..." value="{{ current_filters.search }}">
+        </div>
+
+        <div class="form-group">
+            <label for="district">Район:</label>
+            <select name="district" id="district" class="form-control">
+                <option value="">Все районы</option>
+                <option value="central" {% if current_filters.district == 'central' %}selected{% endif %}>Центральный</option>
+                <option value="northern" {% if current_filters.district == 'northern' %}selected{% endif %}>Северный</option>
+                <option value="southern" {% if current_filters.district == 'southern' %}selected{% endif %}>Южный</option>
+                <option value="eastern" {% if current_filters.district == 'eastern' %}selected{% endif %}>Восточный</option>
+                <option value="western" {% if current_filters.district == 'western' %}selected{% endif %}>Западный</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="interest">Интерес:</label>
+            <select name="interest" id="interest" class="form-control">
+                <option value="">Все интересы</option>
+                <option value="music" {% if current_filters.interest == 'music' %}selected{% endif %}>Музыка</option>
+                <option value="games" {% if current_filters.interest == 'games' %}selected{% endif %}>Компьютерные игры</option>
+                <option value="science" {% if current_filters.interest == 'science' %}selected{% endif %}>Наука</option>
+                <option value="books" {% if current_filters.interest == 'books' %}selected{% endif %}>Книги</option>
+                <option value="parties" {% if current_filters.interest == 'parties' %}selected{% endif %}>Тусовки</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="age_group">Возраст:</label>
+            <select name="age_group" id="age_group" class="form-control">
+                <option value="">Все возрасты</option>
+                <option value="15-18" {% if current_filters.age_group == '15-18' %}selected{% endif %}>15-18 лет</option>
+                <option value="19-27" {% if current_filters.age_group == '19-27' %}selected{% endif %}>19-27 лет</option>
+                <option value="28-39" {% if current_filters.age_group == '28-39' %}selected{% endif %}>28-39 лет</option>
+                <option value="40+" {% if current_filters.age_group == '40+' %}selected{% endif %}>40+ лет</option>
+            </select>
+        </div>
+
+        <div class="form-group" style="display: flex; gap: 1rem; align-items: end;">
+            <button type="submit" class="btn">🔍 Поиск</button>
+            <a href="{% url 'search_partners' %}" class="btn" style="background: linear-gradient(135deg, #6b7280, #4b5563);">
+                🗑️ Сбросить
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="users-list">
+    {% for user in users %}
+    <div class="card user-card">
+        {% if user.avatar %}
+            <img src="{{ user.avatar.url }}" alt="Аватар" class="avatar">
+        {% else %}
+            <div class="avatar-placeholder">
+                {{ user.username|first|upper }}
+            </div>
+        {% endif %}
+        <div style="flex: 1;">
+            <h3>
+                {% if user.first_name %}
+                    {{ user.first_name }} {{ user.last_name }}
+                {% else %}
+                    {{ user.username }}
+                {% endif %}
+            </h3>
+            <p>👤 @{{ user.username }}</p>
+            <p>📍 Район: {{ user.get_district_display }}</p>
+            <p>🎯 Интерес: {{ user.get_interest_display }}</p>
+            <p>📅 Возраст: {{ user.get_age_group_display }}</p>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <a href="{% url 'chat_room' user.district user.interest %}" class="btn">
+                    💬 Написать в чат
+                </a>
+                {% if user != request.user %}
+                    <a href="{% url 'create_session' %}?partner={{ user.username }}" class="btn" style="background: linear-gradient(135deg, #10b981, #059669);">
+                         Пригласить на тренировку
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="card" style="text-align: center;">
+        <h3> Пользователи не найдены</h3>
+        <p>Попробуйте изменить параметры поиска</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% if users %}
+<div class="card" style="text-align: center;">
+    <p>Найдено пользователей: {{ users.count }}</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <h1>💬 Чаты по районам и интересам</h1>
+    <p>Присоединяйтесь к чатам вашего района и делитесь опытом с единомышленниками!</p>
+</div>
+
+<!-- Рекомендуемые чаты -->
+{% if recommended_rooms %}
+<div class="card">
+    <h2 style="color: #8b5cf6; margin-bottom: 1.5rem;"> Рекомендуемые для вас</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+        {% for room in recommended_rooms %}
+        <div style="border: 2px solid #8b5cf6; border-radius: 12px; padding: 1.5rem; background: linear-gradient(145deg, #1a1a1a, #2d2d2d);">
+            <h3>{{ room.get_display_name }}</h3>
+            <p style="color: #ccc; margin: 0.5rem 0;">{{ room.description }}</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                <div>
+                    <span style="color: #10b981;">🟢 {{ room.get_user_count }} онлайн</span>
+                </div>
+                <a href="{% url 'chat_room' room.district room.interest %}" class="btn">
+                    Присоединиться
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Все чаты -->
+<div class="card">
+    <h2>🌐 Все чаты</h2>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+        {% for room in other_rooms %}
+        <div style="border: 1px solid #333; border-radius: 10px; padding: 1.25rem; transition: all 0.3s;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <div>
+                    <h4 style="margin: 0; color: #8b5cf6;">{{ room.get_display_name }}</h4>
+                    <p style="margin: 0.25rem 0; font-size: 0.9rem; color: #ccc;">
+                        📍 {{ room.get_district_display }} | 🎯 {{ room.get_interest_display }}
+                    </p>
+                </div>
+                <span style="background: #8b5cf6; color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">
+                    {{ room.get_user_count }} онлайн
+                </span>
+            </div>
+
+            {% if room.get_last_message %}
+            <div style="background: #2d2d2d; padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem;">
+                <p style="margin: 0; font-size: 0.9rem; color: #ccc;">
+                    <strong>{{ room.get_last_message.user.username }}:</strong>
+                    {{ room.get_last_message.content|truncatewords:10 }}
+                </p>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #666;">
+                    {{ room.get_last_message.timestamp|timesince }} назад
+                </p>
+            </div>
+            {% endif %}
+
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="{% url 'chat_room' room.district room.interest %}" class="btn" style="flex: 1; text-align: center; padding: 0.5rem;">
+                    💬 Войти в чат
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
+            <h3> Чаты пока не созданы</h3>
+            <p>Чат комнаты будут созданы автоматически</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="card">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; text-align: center;">
+        <div>
+            <h3 style="color: #8b5cf6; margin: 0;">{{ recommended_rooms.count|add:other_rooms.count }}</h3>
+            <p>Всего чатов</p>
+        </div>
+        <div>
+            <h3 style="color: #10b981; margin: 0;">
+                {% with total_users=0 %}
+                    {% for room in recommended_rooms %}
+                        {% widthratio room.get_user_count 1 1 as room_users %}
+                        {{ total_users|add:room_users }}
+                    {% endfor %}
+                    {% for room in other_rooms %}
+                        {% widthratio room.get_user_count 1 1 as room_users %}
+                        {{ total_users|add:room_users }}
+                    {% endfor %}
+                {% endwith %}
+            </h3>
+            <p>Пользователей онлайн</p>
+        </div>
+        <div>
+            <h3 style="color: #f59e0b; margin: 0;">5</h3>
+            <p>Районов</p>
+        </div>
+        <div>
+            <h3 style="color: #ef4444; margin: 0;">5</h3>
+            <p>Интересов</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

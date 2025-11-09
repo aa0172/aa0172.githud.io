@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>Регистрация в GymFriend</h2>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="{{ form.username.id_for_label }}">Имя пользователя:</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+                <div class="form-errors">
+                    {% for error in form.username.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.email.id_for_label }}">Email:</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <div class="form-errors">
+                    {% for error in form.email.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.password1.id_for_label }}">Пароль:</label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+                <div class="form-errors">
+                    {% for error in form.password1.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.password2.id_for_label }}">Подтверждение пароля:</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+                <div class="form-errors">
+                    {% for error in form.password2.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.district.id_for_label }}">Район:</label>
+            {{ form.district }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.interest.id_for_label }}">Интересы:</label>
+            {{ form.interest }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.age_group.id_for_label }}">Возрастная группа:</label>
+            {{ form.age_group }}
+        </div>
+
+        <button type="submit" class="btn">Зарегистрироваться</button>
+    </form>
+
+    <p style="margin-top: 1rem;">
+        Уже есть аккаунт? <a href="{% url 'login' %}" style="color: #8b5cf6;">Войдите</a>
+    </p>
+</div>
+{% endblock %}

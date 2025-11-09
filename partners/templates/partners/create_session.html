@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>➕ Создать тренировку</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="gym_name">Название зала *</label>
+            <input type="text" name="gym_name" id="gym_name" class="form-control"
+                   placeholder="Введите название спортивного зала" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Описание тренировки</label>
+            <textarea name="description" id="description" class="form-control"
+                      placeholder="Опишите вашу тренировку, цели и т.д." rows="4"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="district">Район *</label>
+            <select name="district" id="district" class="form-control" required>
+                <option value="">Выберите район</option>
+                <option value="central">Центральный</option>
+                <option value="northern">Северный</option>
+                <option value="southern">Южный</option>
+                <option value="eastern">Восточный</option>
+                <option value="western">Западный</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="date">Дата тренировки *</label>
+            <input type="date" name="date" id="date" class="form-control" required
+                   min="{{ today|date:'Y-m-d' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="time">Время *</label>
+            <select name="time" id="time" class="form-control" required>
+                <option value="">Выберите время</option>
+                <option value="06:00">06:00 - 08:00</option>
+                <option value="08:00">08:00 - 10:00</option>
+                <option value="10:00">10:00 - 12:00</option>
+                <option value="12:00">12:00 - 14:00</option>
+                <option value="14:00">14:00 - 16:00</option>
+                <option value="16:00">16:00 - 18:00</option>
+                <option value="18:00">18:00 - 20:00</option>
+                <option value="20:00">20:00 - 22:00</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="max_participants">Максимум участников (включая вас)</label>
+            <input type="number" name="max_participants" id="max_participants"
+                   class="form-control" value="2" min="1" max="10">
+        </div>
+
+        <button type="submit" class="btn">Создать тренировку</button>
+        <a href="{% url 'home' %}" class="btn" style="background: linear-gradient(135deg, #6b7280, #4b5563);">
+            Отмена
+        </a>
+    </form>
+</div>
+
+<script>
+    // Установка минимальной даты как сегодня
+    document.getElementById('date').min = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %}

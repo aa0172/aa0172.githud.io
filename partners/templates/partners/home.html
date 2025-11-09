@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="hero-section" style="text-align: center; margin-bottom: 3rem;">
+    <h1 style="font-size: 3rem; margin-bottom: 1rem;">
+        <span style="color: #8b5cf6;">Gym</span><span style="color: white;">Friend</span>
+    </h1>
+    <p style="font-size: 1.2rem; color: #ccc; margin-bottom: 2rem;">
+        Найди идеального напарника для тренировок в спортзале
+    </p>
+
+    {% if user.is_authenticated %}
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'search_partners' %}" class="btn" style="font-size: 1.1rem;">
+                🔍 Найти напарника
+            </a>
+            <a href="{% url 'create_session' %}" class="btn" style="font-size: 1.1rem; background: linear-gradient(135deg, #10b981, #059669);">
+                ➕ Создать тренировку
+            </a>
+            <a href="{% url 'chat_rooms' %}" class="btn" style="font-size: 1.1rem; background: linear-gradient(135deg, #f59e0b, #d97706);">
+                💬 Открыть чаты
+            </a>
+        </div>
+    {% else %}
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'register' %}" class="btn" style="font-size: 1.1rem;">
+                 Присоединиться
+            </a>
+            <a href="{% url 'login' %}" class="btn" style="font-size: 1.1rem;">
+                 Войти
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+{% if user.is_authenticated %}
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 3rem;">
+    <!-- Мои тренировки -->
+    <div class="card">
+        <h3>🗓️ Мои ближайшие тренировки</h3>
+        {% if user_sessions %}
+            {% for session in user_sessions %}
+            <div style="padding: 1rem; border: 1px solid #333; border-radius: 8px; margin-bottom: 1rem;">
+                <h4>{{ session.gym_name }}</h4>
+                <p>📅 {{ session.date }} | 🕒 {{ session.get_time_display }}</p>
+                <p>📍 {{ session.get_district_display }}</p>
+                <p>👥 {{ session.current_participants }}/{{ session.max_participants }} участников</p>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>У вас нет запланированных тренировок</p>
+            <a href="{% url 'create_session' %}" class="btn">Создать первую тренировку</a>
+        {% endif %}
+    </div>
+
+    <!-- Рекомендованные пользователи -->
+    <div class="card">
+        <h3>⭐ Рекомендованные напарники</h3>
+        {% if recommended_users %}
+            {% for user_rec in recommended_users %}
+            <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border-bottom: 1px solid #333;">
+                {% if user_rec.avatar %}
+                    <img src="{{ user_rec.avatar.url }}" alt="Аватар" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid #8b5cf6;">
+                {% else %}
+                    <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; border: 2px solid #8b5cf6;">
+                        {{ user_rec.username|first|upper }}
+                    </div>
+                {% endif %}
+                <div>
+                    <strong>
+                        {% if user_rec.first_name %}
+                            {{ user_rec.first_name }} {{ user_rec.last_name }}
+                        {% else %}
+                            {{ user_rec.username }}
+                        {% endif %}
+                    </strong>
+                    <p style="margin: 0.25rem 0; color: #ccc; font-size: 0.9rem;">
+                        🎯 {{ user_rec.get_interest_display }} | 📍 {{ user_rec.get_district_display }}
+                    </p>
+                    <a href="{% url 'chat_room' user_rec.district user_rec.interest %}" class="btn" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">
+                        Написать
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>Пока нет рекомендаций</p>
+            <a href="{% url 'search_partners' %}" class="btn">Найти напарников</a>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="card" style="text-align: center;">
+    <h2>Почему GymFriend?</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 2rem;">
+        <div>
+            <h3 style="color: #8b5cf6;">👥 Найдите единомышленников</h3>
+            <p>Найдите напарников с похожими интересами в вашем районе</p>
+        </div>
+        <div>
+            <h3 style="color: #8b5cf6;">💪 Мотивируйте друг друга</h3>
+            <p>Совместные тренировки помогают сохранять мотивацию</p>
+        </div>
+        <div>
+            <h3 style="color: #8b5cf6;">🗣️ Общайтесь и делитесь</h3>
+            <p>Встроенная система чатов для удобного общения</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
