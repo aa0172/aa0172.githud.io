@@ -1,170 +1,204 @@
-<!-- index.html - Главная страница GymFriend -->
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% load static %}
 
 {% block title %}GymFriend - Найди идеального напарника для тренировок{% endblock %}
 
 {% block content %}
 <!-- Hero секция -->
-<section class="hero-section" style="text-align: center; padding: 4rem 0;">
+<section class="hero-section" style="text-align: center; padding: 3rem 0 4rem;">
     <div class="hero-content">
-        <h1 style="font-size: 3.5rem; margin-bottom: 1rem; background: linear-gradient(135deg, var(--primary-color), #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-            Найди напарника для достижения целей
+        <h1 style="font-size: 3.5rem; margin-bottom: 1rem; background: linear-gradient(135deg, var(--primary-color), #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            Найди напарника для тренировок
         </h1>
-        <p style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-            Присоединяйся к сообществу спортсменов, находи единомышленников и тренируйся эффективнее вместе с GymFriend
+        <p style="font-size: 1.2rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto 2rem;">
+            Объединяйся с единомышленниками, достигай целей вместе и сделай тренировки эффективнее
         </p>
-        <div class="hero-buttons" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-            <a href="{% url 'search_partners' %}" class="btn" style="font-size: 1.1rem; padding: 1rem 2rem;">
-                🔍 Найти напарника
-            </a>
-            {% if not user.is_authenticated %}
-                <a href="{% url 'register' %}" class="btn btn-secondary" style="font-size: 1.1rem; padding: 1rem 2rem;">
-                    ✨ Создать профиль
+
+        {% if user.is_authenticated %}
+            <div class="hero-buttons" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="{% url 'search_partners' %}" class="btn" style="font-size: 1.1rem; padding: 0.8rem 1.8rem;">
+                    🔍 Найти напарника
                 </a>
-            {% endif %}
-        </div>
+                <a href="{% url 'create_session' %}" class="btn btn-success" style="font-size: 1.1rem; padding: 0.8rem 1.8rem;">
+                    ➕ Создать тренировку
+                </a>
+                <a href="{% url 'chat_rooms' %}" class="btn btn-warning" style="font-size: 1.1rem; padding: 0.8rem 1.8rem;">
+                    💬 Открыть чаты
+                </a>
+            </div>
+        {% else %}
+            <div class="hero-buttons" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="{% url 'register' %}" class="btn" style="font-size: 1.1rem; padding: 0.8rem 1.8rem;">
+                    ✨ Присоединиться
+                </a>
+                <a href="{% url 'login' %}" class="btn btn-secondary" style="font-size: 1.1rem; padding: 0.8rem 1.8rem;">
+                    🔐 Войти
+                </a>
+            </div>
+        {% endif %}
     </div>
 </section>
 
 <!-- Статистика -->
-<section class="stats-section" style="padding: 3rem 0;">
+<section class="stats-section" style="padding: 2rem 0;">
     <div class="grid grid-3" style="text-align: center;">
         <div class="card">
-            <div style="font-size: 2.5rem; color: var(--primary-color); margin-bottom: 0.5rem;">🏋️</div>
-            <h3 style="font-size: 2rem; margin-bottom: 0.25rem;">1000+</h3>
-            <p style="color: var(--text-secondary);">Активных пользователей</p>
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🏋️</div>
+            <h3 style="font-size: 1.8rem; color: var(--primary-color); margin-bottom: 0.25rem;">5+</h3>
+            <p style="color: var(--text-secondary);">Районов</p>
         </div>
         <div class="card">
-            <div style="font-size: 2.5rem; color: var(--primary-color); margin-bottom: 0.5rem;">🤝</div>
-            <h3 style="font-size: 2rem; margin-bottom: 0.25rem;">500+</h3>
-            <p style="color: var(--text-secondary);">Найденных напарников</p>
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎯</div>
+            <h3 style="font-size: 1.8rem; color: var(--primary-color); margin-bottom: 0.25rem;">5+</h3>
+            <p style="color: var(--text-secondary);">Интересов</p>
         </div>
         <div class="card">
-            <div style="font-size: 2.5rem; color: var(--primary-color); margin-bottom: 0.5rem;">💬</div>
-            <h3 style="font-size: 2rem; margin-bottom: 0.25rem;">10k+</h3>
-            <p style="color: var(--text-secondary);">Сообщений в чатах</p>
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">💬</div>
+            <h3 style="font-size: 1.8rem; color: var(--primary-color); margin-bottom: 0.25rem;">25+</h3>
+            <p style="color: var(--text-secondary);">Чатов</p>
+        </div>
+    </div>
+</section>
+
+{% if user.is_authenticated %}
+<!-- Мои ближайшие тренировки -->
+<section class="my-sessions" style="padding: 2rem 0;">
+    <div class="card">
+        <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">
+            🗓️ Мои ближайшие тренировки
+        </h2>
+        {% if user_sessions %}
+            <div style="display: grid; gap: 1rem;">
+                {% for session in user_sessions %}
+                <div style="padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--background-card-light);">
+                    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap;">
+                        <div>
+                            <h3 style="margin-bottom: 0.5rem;">{{ session.gym_name }}</h3>
+                            <p style="color: var(--text-secondary);">📅 {{ session.date }} | 🕒 {{ session.get_time_display }}</p>
+                            <p style="color: var(--text-secondary);">📍 {{ session.get_district_display }}</p>
+                            <p>👥 Участников: {{ session.current_participants }}/{{ session.max_participants }}</p>
+                        </div>
+                        <a href="{% url 'search_partners' %}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Подробнее</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">
+                У вас пока нет запланированных тренировок
+            </p>
+            <div style="text-align: center;">
+                <a href="{% url 'create_session' %}" class="btn">➕ Создать первую тренировку</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Рекомендованные напарники -->
+<section class="recommended" style="padding: 2rem 0;">
+    <div class="card">
+        <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">
+            ⭐ Рекомендованные напарники
+        </h2>
+        {% if recommended_users %}
+            <div style="display: grid; gap: 1rem;">
+                {% for recommended in recommended_users %}
+                <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--border-color);">
+                    {% if recommended.avatar %}
+                        <img src="{{ recommended.avatar.url }}" alt="Аватар" class="avatar-sm" style="width: 50px; height: 50px;">
+                    {% else %}
+                        <div class="avatar-placeholder avatar-sm" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                            {{ recommended.username|first|upper }}
+                        </div>
+                    {% endif %}
+                    <div style="flex: 1;">
+                        <strong>
+                            {% if recommended.first_name %}
+                                {{ recommended.first_name }} {{ recommended.last_name }}
+                            {% else %}
+                                {{ recommended.username }}
+                            {% endif %}
+                        </strong>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                            🎯 {{ recommended.get_interest_display }} | 📍 {{ recommended.get_district_display }}
+                        </p>
+                    </div>
+                    <a href="{% url 'chat_room' recommended.district recommended.interest %}" class="btn" style="padding: 0.4rem 1rem; font-size: 0.8rem;">
+                        💬 Написать
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">
+                Пока нет рекомендаций. Заполните профиль, чтобы мы могли подобрать напарников!
+            </p>
+            <div style="text-align: center;">
+                <a href="{% url 'profile' %}" class="btn btn-secondary">✏️ Заполнить профиль</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% else %}
+<!-- Преимущества для неавторизованных -->
+<section class="features" style="padding: 2rem 0;">
+    <div class="card">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Почему GymFriend?</h2>
+        <div class="grid grid-3">
+            <div style="text-align: center;">
+                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👥</div>
+                <h3>Найдите единомышленников</h3>
+                <p style="color: var(--text-secondary);">Напарники с похожими интересами в вашем районе</p>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">💪</div>
+                <h3>Мотивируйте друг друга</h3>
+                <p style="color: var(--text-secondary);">Совместные тренировки повышают эффективность</p>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🗣️</div>
+                <h3>Общайтесь и делитесь</h3>
+                <p style="color: var(--text-secondary);">Встроенная система чатов для удобного общения</p>
+            </div>
         </div>
     </div>
 </section>
 
 <!-- Как это работает -->
-<section class="how-it-works" style="padding: 3rem 0;">
-    <h2 style="text-align: center; margin-bottom: 3rem; font-size: 2rem;">Как работает GymFriend?</h2>
-    <div class="grid grid-3">
-        <div class="card text-center" style="text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">1️⃣</div>
-            <h3 style="margin-bottom: 0.5rem;">Создай профиль</h3>
-            <p style="color: var(--text-secondary);">Расскажи о своих тренировках, целях и предпочтениях</p>
-        </div>
-        <div class="card text-center" style="text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">2️⃣</div>
-            <h3 style="margin-bottom: 0.5rem;">Найди напарника</h3>
-            <p style="color: var(--text-secondary);">Используй фильтры для поиска идеального партнера по тренировкам</p>
-        </div>
-        <div class="card text-center" style="text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">3️⃣</div>
-            <h3 style="margin-bottom: 0.5rem;">Начни общение</h3>
-            <p style="color: var(--text-secondary);">Общайся в чатах, договаривайся о тренировках и достигай целей вместе</p>
-        </div>
-    </div>
-</section>
-
-<!-- Преимущества -->
-<section class="features" style="padding: 3rem 0; background: linear-gradient(145deg, var(--background-card), var(--background-card-light)); border-radius: var(--border-radius); margin: 2rem 0;">
-    <h2 style="text-align: center; margin-bottom: 3rem; font-size: 2rem;">Почему выбирают GymFriend?</h2>
-    <div class="grid grid-2">
-        <div class="flex" style="gap: 1rem; align-items: flex-start;">
-            <div style="font-size: 2rem;">🎯</div>
-            <div>
-                <h3 style="margin-bottom: 0.5rem;">Умный поиск</h3>
-                <p style="color: var(--text-secondary);">Находи напарников по уровню подготовки, целям и расписанию</p>
+<section class="how-it-works" style="padding: 2rem 0;">
+    <div class="card">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Как это работает?</h2>
+        <div class="grid grid-3">
+            <div style="text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">1️⃣</div>
+                <h3>Зарегистрируйтесь</h3>
+                <p style="color: var(--text-secondary);">Создайте профиль и расскажите о себе</p>
             </div>
-        </div>
-        <div class="flex" style="gap: 1rem; align-items: flex-start;">
-            <div style="font-size: 2rem;">💪</div>
-            <div>
-                <h3 style="margin-bottom: 0.5rem;">Мотивация</h3>
-                <p style="color: var(--text-secondary);">Тренировки с напарником повышают эффективность до 85%</p>
+            <div style="text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">2️⃣</div>
+                <h3>Найдите напарника</h3>
+                <p style="color: var(--text-secondary);">Используйте фильтры для поиска по району и интересам</p>
             </div>
-        </div>
-        <div class="flex" style="gap: 1rem; align-items: flex-start;">
-            <div style="font-size: 2rem;">🔒</div>
-            <div>
-                <h3 style="margin-bottom: 0.5rem;">Безопасность</h3>
-                <p style="color: var(--text-secondary);">Верификация профилей и модерация для твоей безопасности</p>
-            </div>
-        </div>
-        <div class="flex" style="gap: 1rem; align-items: flex-start;">
-            <div style="font-size: 2rem;">📱</div>
-            <div>
-                <h3 style="margin-bottom: 0.5rem;">Удобный интерфейс</h3>
-                <p style="color: var(--text-secondary);">Адаптивный дизайн для комфортного использования с любого устройства</p>
+            <div style="text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">3️⃣</div>
+                <h3>Тренируйтесь вместе</h3>
+                <p style="color: var(--text-secondary);">Общайтесь в чатах и создавайте совместные тренировки</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Отзывы -->
-<section class="testimonials" style="padding: 3rem 0;">
-    <h2 style="text-align: center; margin-bottom: 3rem; font-size: 2rem;">Что говорят наши пользователи?</h2>
-    <div class="grid grid-3">
-        <div class="card">
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                <div class="avatar-placeholder">А</div>
-                <div>
-                    <strong>Алексей</strong>
-                    <div style="color: var(--primary-color); font-size: 0.9rem;">⭐⭐⭐⭐⭐</div>
-                </div>
-            </div>
-            <p style="color: var(--text-secondary);">"Нашел напарника для кроссфита за 2 дня! Теперь тренировки намного интереснее и продуктивнее."</p>
-        </div>
-        <div class="card">
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                <div class="avatar-placeholder">М</div>
-                <div>
-                    <strong>Мария</strong>
-                    <div style="color: var(--primary-color); font-size: 0.9rem;">⭐⭐⭐⭐⭐</div>
-                </div>
-            </div>
-            <p style="color: var(--text-secondary);">"Отличный сервис! Удобный поиск по параметрам. Рекомендую всем, кто хочет прогрессировать."</p>
-        </div>
-        <div class="card">
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                <div class="avatar-placeholder">Д</div>
-                <div>
-                    <strong>Дмитрий</strong>
-                    <div style="color: var(--primary-color); font-size: 0.9rem;">⭐⭐⭐⭐⭐</div>
-                </div>
-            </div>
-            <p style="color: var(--text-secondary);">"Чат работает отлично, интерфейс приятный. Спасибо разработчикам за такой полезный проект!"</p>
-        </div>
+<!-- CTA -->
+<section class="cta" style="padding: 2rem 0 3rem;">
+    <div class="card" style="text-align: center; background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));">
+        <h2 style="color: white; margin-bottom: 1rem;">Готов начать?</h2>
+        <p style="color: rgba(255,255,255,0.9); margin-bottom: 1.5rem;">
+            Присоединяйся к сообществу и найди идеального напарника для тренировок
+        </p>
+        <a href="{% url 'register' %}" class="btn" style="background: white; color: var(--primary-color); font-size: 1.1rem; padding: 0.8rem 2rem;">
+            ✨ Зарегистрироваться бесплатно
+        </a>
     </div>
-</section>
-
-<!-- CTA секция для неавторизованных -->
-{% if not user.is_authenticated %}
-<section class="cta-section" style="text-align: center; padding: 4rem 2rem; background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border-radius: var(--border-radius); margin: 2rem 0;">
-    <h2 style="color: white; margin-bottom: 1rem;">Готов начать тренироваться эффективнее?</h2>
-    <p style="color: rgba(255,255,255,0.9); margin-bottom: 2rem; max-width: 500px; margin-left: auto; margin-right: auto;">
-        Присоединяйся к сообществу GymFriend уже сегодня и найди идеального напарника для тренировок
-    </p>
-    <a href="{% url 'register' %}" class="btn" style="background: white; color: var(--primary-color); font-size: 1.1rem; padding: 1rem 2rem;">
-        ✨ Зарегистрироваться бесплатно
-    </a>
 </section>
 {% endif %}
-
-<!-- Популярные виды спорта -->
-<section class="popular-sports" style="padding: 2rem 0 4rem;">
-    <h2 style="text-align: center; margin-bottom: 2rem; font-size: 1.5rem;">Популярные виды спорта</h2>
-    <div class="flex" style="flex-wrap: wrap; gap: 1rem; justify-content: center;">
-        <span class="pill" style="background: var(--background-card); padding: 0.5rem 1rem; border-radius: 20px;">🏋️ Силовые тренировки</span>
-        <span class="pill" style="background: var(--background-card); padding: 0.5rem 1rem; border-radius: 20px;">🏃‍♂️ Бег</span>
-        <span class="pill" style="background: var(--background-card); padding: 0.5rem 1rem; border-radius: 20px;">🧘 Йога</span>
-        <span class="pill" style="background: var(--background-card); padding: 0.5rem 1rem; border-radius: 20px;">🤸‍♀️ Кроссфит</span>
-        <span class="pill" style="background: var(--background-card); padding: 0.5rem 1rem; border-radius: 20px;">🥊 Бокс</span>
-        <span class="pill" style="background: var(--background-card); padding: 0.5rem 1rem; border-radius: 20px;">🚴 Велоспорт</span>
-        <span class="pill" style="background: var(--background-card); padding: 0.5rem 1rem; border-radius: 20px;">🏊 Плавание</span>
-    </div>
-</section>
 {% endblock %}
